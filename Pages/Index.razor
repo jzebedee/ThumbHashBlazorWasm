@@ -5,34 +5,38 @@
 
 <PageTitle>ThumbHash Demo</PageTitle>
 
-@if (thumbhash is not null)
-{
-    <h4>ThumbHash info:</h4>
-    <p>
-        <pre>@thumbhashHex</pre>
-        <pre>@thumbhash</pre>
-    </p>
-}
-
-<h4>Convert ThumbHash to Render:</h4>
-<p>
-    <InputText @bind-Value="thumbhashHex" style="font-family:monospace;width:30em" />
-    <br />
-    @if (renderedHash is not null and { } rendered)
+<div class="row">
+    @if (thumbhash is not null)
     {
-        var wr = 250f / rendered.width;
-        var wh = 250f / rendered.height;
-        var ar = Math.Min(wr, wh);
-        var cw = rendered.width * ar;
-        var ch = rendered.height * ar;
-        <img src="@rendered.dataUri" width="@cw" height="@ch" />
+        <div class="col">
+            <h4>ThumbHash info:</h4>
+            <p>
+                <pre>@thumbhashHex</pre>
+                <pre>@thumbhash</pre>
+            </p>
+        </div>
     }
-</p>
 
-<h4>Convert Image to ThumbHash:</h4>
-<p>
-    <InputFile OnChange="@LoadFiles" />
-</p>
+    <div class="col">
+        <h4>Convert ThumbHash to Render:</h4>
+        <InputText @bind-Value="thumbhashHex" style="font-family:monospace;width:30em" />
+        <br />
+        @if (renderedHash is not null and { } rendered)
+        {
+            var wr = 250f / rendered.width;
+            var wh = 250f / rendered.height;
+            var ar = Math.Min(wr, wh);
+            var cw = rendered.width * ar;
+            var ch = rendered.height * ar;
+            <img src="@rendered.dataUri" width="@cw" height="@ch" />
+        }
+    </div>
+
+    <div class="col">
+        <h4>Convert Image to ThumbHash:</h4>
+        <InputFile OnChange="@LoadFiles" />
+    </div>
+</div>
 
 @code {
     public string thumbhashHex
