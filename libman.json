@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "img-comparison-slider@7",
+      "destination": "wwwroot/lib/img-comparison-slider/",
+      "files": [
+        "dist/index.js",
+        "dist/styles.css"
+      ]
+    }
+  ]
+}
