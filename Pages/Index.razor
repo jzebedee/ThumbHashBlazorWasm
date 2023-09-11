@@ -2,6 +2,7 @@
 @using SkiaSharp;
 @using SkiaSharp.Views.Blazor
 @using ThumbHashes;
+@inject IJSRuntime JS
 
 <PageTitle>ThumbHash Demo</PageTitle>
 
@@ -21,24 +22,30 @@
         <h4>Convert ThumbHash to Render:</h4>
         <InputText @bind-Value="thumbhashHex" style="font-family:monospace;width:30em" />
         <br />
-        @if (renderedHash is not null and { } rendered)
-        {
-            var wr = 250f / rendered.width;
-            var wh = 250f / rendered.height;
-            var ar = Math.Min(wr, wh);
-            var cw = rendered.width * ar;
-            var ch = rendered.height * ar;
-            <img src="@rendered.dataUri" width="@cw" height="@ch" />
-        }
+        <img-comparison-slider>
+            @if (renderedHash is not null and { } rendered)
+            {
+                var wr = 250f / rendered.width;
+                var wh = 250f / rendered.height;
+                var ar = Math.Min(wr, wh);
+                var cw = rendered.width * ar;
+                var ch = rendered.height * ar;
+                <img slot="second" src="@rendered.dataUri" width="@cw" height="@ch" />
+            }
+            <img slot="first" style="max-width:250px;max-height:250px" @ref="previewImageElem" />
+        </img-comparison-slider>
     </div>
 
     <div class="col">
         <h4>Convert Image to ThumbHash:</h4>
-        <InputFile OnChange="@LoadFiles" />
+        <InputFile @ref="inputFile" OnChange="@LoadFiles" />
     </div>
 </div>
 
 @code {
+    private InputFile? inputFile;
+    private ElementReference previewImageElem;
+
     public string thumbhashHex
     {
         get => Convert.ToHexString((thumbhash?.Hash ?? ReadOnlyMemory<byte>.Empty).Span);
@@ -55,19 +62,23 @@
 
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
-        var imageFile = await e.File.RequestImageFileAsync("image/png", 100, 100);
-        using var imageStream = imageFile.OpenReadStream();
+        await ShowPreview();
+ 
+        {
+            var imageFile = await e.File.RequestImageFileAsync("image/png", 100, 100);
+            using var imageStream = imageFile.OpenReadStream();
 
-        using var ms = new MemoryStream();
-        await imageStream.CopyToAsync(ms);
-        ms.Seek(0, SeekOrigin.Begin);
+            using var ms = new MemoryStream();
+            await imageStream.CopyToAsync(ms);
+            ms.Seek(0, SeekOrigin.Begin);
 
-        using var skImage = SKImage.FromEncodedData(ms);
+            using var skImage = SKImage.FromEncodedData(ms);
 
-        using var bitmap = SKBitmap.FromImage(skImage);
-        using var bitmapRgba = bitmap.Copy(SKColorType.Rgba8888);
+            using var bitmap = SKBitmap.FromImage(skImage);
+            using var bitmapRgba = bitmap.Copy(SKColorType.Rgba8888);
 
-        thumbhash = ThumbHash.FromImage(bitmapRgba.Width, bitmapRgba.Height, bitmapRgba.GetPixelSpan());
+            thumbhash = ThumbHash.FromImage(bitmapRgba.Width, bitmapRgba.Height, bitmapRgba.GetPixelSpan());
+        }
 
         StateHasChanged();
     }
@@ -86,4 +97,7 @@
         using var encoded = image.Encode();
         return (width, height, "data:image/png;base64," + Convert.ToBase64String(encoded.AsSpan()));
     }
+
+    private async Task ShowPreview()
+        => await JS.InvokeVoidAsync("previewImage", inputFile!.Element, previewImageElem);
 }

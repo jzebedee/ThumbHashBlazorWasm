@@ -29,6 +29,13 @@
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="lib/img-comparison-slider/dist/index.js"></script>
+    <script>
+        window.previewImage = (inputElem, imgElem) => {
+            const url = URL.createObjectURL(inputElem.files[0]);
+            imgElem.addEventListener('load', () => URL.revokeObjectURL(url), { once: true });
+            imgElem.src = url;
+        }
+    </script>
 </body>
 
 </html>
